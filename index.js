@@ -6,7 +6,7 @@ var fsExtra = require('fs-extra');
 
 function Plugin(translationOptions) {
   var defaultOptions = {
-    conf: __dirname + '/jsdoc.conf'
+    conf: './jsdoc.conf'
   };
 
   this.options = merge({}, defaultOptions, translationOptions);
