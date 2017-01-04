@@ -51,7 +51,10 @@ Plugin.prototype.apply = function (compiler) {
       var jsDocConfTmp = path.resolve(cwd, 'jsdoc.' + Date.now() + '.conf.tmp');
       fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
 
-      jsdoc = spawn('./node_modules/.bin/jsdoc', ['-c', jsDocConfTmp]);
+        if(/^win/.test(process.platform))
+            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc.cmd', ['-c', jsDocConfTmp]);
+        else
+            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc', ['-c', jsDocConfTmp]);
 
       jsdoc.stdout.on('data', function (data) {
         console.log(data.toString());
