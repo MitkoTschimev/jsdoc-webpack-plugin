@@ -1,3 +1,5 @@
+'use strict';
+
 var fs = require('fs');
 var path = require('path');
 var merge = require('lodash/merge');
@@ -10,6 +12,45 @@ function Plugin(translationOptions) {
   };
 
   this.options = merge({}, defaultOptions, translationOptions);
+}
+
+/**
+ * Spawns a jsdoc process.
+ * It will look for the binary in the basePath passed.
+ * @param  {String} basePath - the basepath
+ * @param  {Object} obj      - config object
+ * @return {Promise} with an array of errors, if any
+ */
+function spawnJsDoc (basePath, obj) {
+  return new Promise((resolve, reject) => {
+    var jsdocErrors = [];
+    var spawnErr = false;
+    var cwd = process.cwd();
+    var jsDocConfTmp = path.resolve(cwd, 'jsdoc.' + Date.now() + '.conf.tmp');
+
+    fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
+
+    var command = /^win/.test(process.platform) ? 'jsdoc.cmd' : 'jsdoc';
+    var jsdoc = spawn(path.resolve(basePath, command), ['-c', jsDocConfTmp]);
+
+    jsdoc.on('error', (err) => {
+      spawnErr = err;
+    });
+    jsdoc.stderr.on('data', function (data) {
+      jsdocErrors.push(data.toString());
+    });
+    jsdoc.on('close', function (data, code) {
+      jsdocErrors = jsdocErrors.join('\n').split('\n').filter((item) => { return item !== ''; });
+      jsdocErrors.forEach((message, index, list) => {
+        list[index] = new Error(message);
+      });
+      fs.unlink(jsDocConfTmp, function (err) {
+        if (err) return reject(err);
+        if (spawnErr) return reject(spawnErr);
+        resolve(jsdocErrors);
+      });
+    });
+  });
 }
 
 Plugin.prototype.apply = function (compiler) {
@@ -25,9 +66,7 @@ Plugin.prototype.apply = function (compiler) {
     console.log('JSDOC Start generating');
 
     fsExtra.readJson(path.resolve(process.cwd(), options.conf), function (err, obj) {
-      var files = [], jsdocErrors = [];
-      var jsdoc, cwd = process.cwd();
-
+      var files = [];
       if(err) {
         callback(err);
         return;
@@ -48,41 +87,33 @@ Plugin.prototype.apply = function (compiler) {
         merge(obj.source, { include: files });
       }
 
-      var jsDocConfTmp = path.resolve(cwd, 'jsdoc.' + Date.now() + '.conf.tmp');
-      fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
-
-        if(/^win/.test(process.platform))
-            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc.cmd', ['-c', jsDocConfTmp]);
-        else
-            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc', ['-c', jsDocConfTmp]);
-
-      jsdoc.stdout.on('data', function (data) {
-        console.log(data.toString());
-      });
-
-      jsdoc.stderr.on('data', function (data) {
-        jsdocErrors.push(data.toString());
-      });
-
-      jsdoc.on('close', function (data, code) {
-        if(jsdocErrors.length > 0) {
-          jsdocErrors.forEach(function (value) {
-            console.error(value);
-          });
+      /**
+       * First try to spawn the jsdoc command from `node_modules/jsdoc-webpack-plugin/node_modules/.bin` path
+       */
+      spawnJsDoc(`${__dirname}/node_modules/.bin/`, obj).then((errs) => {
+        if (errs && errs.length > 0) compilation.errors = compilation.errors.concat(errs);
+        callback();
+      }).catch((err) => {
+        if (err.code === 'ENOENT') {
+            /**
+             * Then if it wasn' found try to spawn it from the `node_modules/.bin` path,
+             * assuming that process.cwd() points to the app root path.
+             */
+            return spawnJsDoc(`${process.cwd()}/node_modules/.bin`, obj);
         } else {
-          console.log('JsDoc successful');
+          return Promise.resolve();
         }
-        fs.unlink(jsDocConfTmp, function() {
-          callback();
-        });
+      }).then((errs) => {
+        if (errs && errs.length > 0) compilation.errors = compilation.errors.concat(errs);
+        callback();
+      }).catch((err) => {
+        compilation.errors.push(err);
+        callback();
       });
+
     });
   });
 
-  compiler.plugin('done', function (stats) {
-    console.log('JSDOC Finished generating');
-    console.log('JSDOC TOTAL TIME:', stats.endTime - stats.startTime);
-  });
 };
 
 module.exports = Plugin;
