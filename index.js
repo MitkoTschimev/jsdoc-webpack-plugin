@@ -100,21 +100,8 @@ Plugin.prototype.apply = function (compiler) {
         callback();
       }).catch((err) => {
         if (err.code === "ENOENT") {
-          /**
-           * Then try to spawn the jsdoc command from `node_modules/.bin` path
-           * assuming that process.cwd() points to the app root path.
-           */
-           return spawnJsDoc(`${process.cwd()}/node_modules/.bin`, obj)
-        } else {
-          return Promise.reject(err);
-        }
-      }).then((errs) => {
-        if (errs && errs.length > 0) compilation.errors = compilation.errors.concat(errs);
-        callback();
-      }).catch((err) => {
-        if (err.code === "ENOENT") {
             /**
-             * Finally try to spawn the global jsdoc command
+             * Finally try to let node find it
              */
             return spawnJsDoc(null, obj);
         } else {
