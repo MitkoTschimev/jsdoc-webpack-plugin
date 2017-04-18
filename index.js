@@ -27,11 +27,16 @@ function spawnJsDoc (basePath, obj) {
     var spawnErr = false;
     var cwd = process.cwd();
     var jsDocConfTmp = path.resolve(cwd, 'jsdoc.' + Date.now() + '.conf.tmp');
+    var command = /^win/.test(process.platform) ? 'jsdoc.cmd' : 'jsdoc';
+    var jsdoc;
 
     fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
 
-    var command = /^win/.test(process.platform) ? 'jsdoc.cmd' : 'jsdoc';
-    var jsdoc = spawn(path.resolve(basePath, command), ['-c', jsDocConfTmp]);
+    if (typeof basePath === 'string') {
+      jsdoc = spawn(path.resolve(basePath, command), ['-c', jsDocConfTmp])
+    } else {
+      jsdoc = spawn('jsdoc', ['-c', jsDocConfTmp])
+    }
 
     jsdoc.on('error', (err) => {
       spawnErr = err;
@@ -94,20 +99,23 @@ Plugin.prototype.apply = function (compiler) {
         if (errs && errs.length > 0) compilation.errors = compilation.errors.concat(errs);
         callback();
       }).catch((err) => {
-        if (err.code === 'ENOENT') {
+        if (err.code === "ENOENT") {
             /**
-             * Then if it wasn' found try to spawn it from the `node_modules/.bin` path,
-             * assuming that process.cwd() points to the app root path.
+             * Finally try to let node find it
              */
-            return spawnJsDoc(`${process.cwd()}/node_modules/.bin`, obj);
+            return spawnJsDoc(null, obj);
         } else {
-          return Promise.resolve();
+          return Promise.reject(err);
         }
       }).then((errs) => {
         if (errs && errs.length > 0) compilation.errors = compilation.errors.concat(errs);
         callback();
       }).catch((err) => {
-        compilation.errors.push(err);
+        if (err.code === "ENOENT") {
+          compilation.errors.push(new Error('JSDOC not found.'))
+        } else {
+          compilation.errors.push(err);
+        }
         callback();
       });
 
