@@ -6,6 +6,7 @@ var fsExtra = require('fs-extra');
 
 function Plugin(translationOptions) {
   var defaultOptions = {
+    args: [],
     conf: './jsdoc.conf'
   };
 
@@ -51,10 +52,12 @@ Plugin.prototype.apply = function (compiler) {
       var jsDocConfTmp = path.resolve(cwd, 'jsdoc.' + Date.now() + '.conf.tmp');
       fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
 
-        if(/^win/.test(process.platform))
-            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc.cmd', ['-c', jsDocConfTmp]);
-        else
-            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc', ['-c', jsDocConfTmp]);
+      var args = ['-c', jsDocConfTmp].concat(options.args);
+
+      if(/^win/.test(process.platform))
+        jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc.cmd', args);
+      else
+        jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc', args);
 
       jsdoc.stdout.on('data', function (data) {
         console.log(data.toString());

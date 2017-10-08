@@ -14,6 +14,7 @@ module.exports = {
     /// ... rest of config
     plugins: [
         new JsDocPlugin({
+            args: [rootPath + '/README.md', '-r'],
             conf: './jsdoc.conf'
         })
     ]
