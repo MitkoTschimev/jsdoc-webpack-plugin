@@ -13,7 +13,7 @@ module.exports = {
     /// ... rest of config
     plugins: [
         new JsDocPlugin({
-            args: ['-r'],
+            extraArgs: ['-r'],
             conf: './jsdoc.conf'
         })
     ]
