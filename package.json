@@ -22,7 +22,6 @@
   "homepage": "https://github.com/tfiwm/jsdoc-webpack-plugin#readme",
   "dependencies": {
     "fs-extra": "^0.30.0",
-    "jsdoc": "^3.4.0",
-    "lodash": "^4.11.2"
+    "jsdoc": "^3.4.0"
   }
 }

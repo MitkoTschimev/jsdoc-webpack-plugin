@@ -1,20 +1,19 @@
 jsdoc-webpack-plugin
 ==========================
 
-
 WebPack plugin that runs [jsdoc](http://usejsdoc.org/) on your bundles
 
 # Usage
 In webpack.config.js:
 ```javascript
-var webpack = require('webpack');
-var JsDocPlugin = require('jsdoc-webpack-plugin');
+const webpack = require('webpack');
+const JsDocPlugin = require('jsdoc-webpack-plugin');
 
 module.exports = {
     /// ... rest of config
     plugins: [
         new JsDocPlugin({
-            args: [rootPath + '/README.md', '-r'],
+            args: ['-r'],
             conf: './jsdoc.conf'
         })
     ]
