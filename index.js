@@ -52,7 +52,7 @@ Plugin.prototype.apply = function (compiler) {
       fs.writeFileSync(jsDocConfTmp, JSON.stringify(obj));
 
         if(/^win/.test(process.platform))
-            jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc.cmd', ['-c', jsDocConfTmp]);
+            jsdoc = spawn(path.resolve(cwd) + '/node_modules/.bin/jsdoc.cmd', ['-c', jsDocConfTmp]);
         else
             jsdoc = spawn(__dirname + '/node_modules/.bin/jsdoc', ['-c', jsDocConfTmp]);
 
