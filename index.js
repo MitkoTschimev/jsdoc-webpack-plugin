@@ -62,7 +62,7 @@ function Plugin(options) {
      * A relative path to "cwd" is expected.
      * @type {?string}
      */
-    conf: 'jsdoc.conf',
+    conf: 'jsdoc.conf.js',
     /**
      * Default path for command and file lookup.
      * @type {?string}
