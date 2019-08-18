@@ -3,6 +3,9 @@ var spawn = require('child_process').spawn;
 var fse = require('fs-extra');
 var _ = require('lodash');
 
+/** @type {string} */
+var PLUGIN_NAME = 'JsDocPlugin';
+
 /** @type {boolean} */
 var isWindows = /^win/.test(process.platform);
 
@@ -85,12 +88,11 @@ Plugin.prototype.apply = function (compiler) {
   var self = this;
   var options = self.options;
 
-  compiler.plugin('watch-run', function (watching, callback) {
+  compiler.hooks.watchRun.tap(PLUGIN_NAME, function (watching) {
     self.webpackIsWatching = true;
-    callback(null, null);
   });
 
-  compiler.plugin('emit', function (compilation, callback) {
+  compiler.hooks.emit.tapAsync(PLUGIN_NAME, function (compilation, callback) {
     var cwd = process.cwd();
     var givenDirectory = options.cwd;
     var preserveTmpFile = options.preserveTmpFile;
@@ -192,7 +194,7 @@ Plugin.prototype.apply = function (compiler) {
     });
   });
 
-  compiler.plugin('done', function (stats) {
+  compiler.hooks.done.tap(PLUGIN_NAME, function (stats) {
     console.log('JSDOC Finished generating');
     console.log('JSDOC TOTAL TIME:', stats.endTime - stats.startTime);
   });
