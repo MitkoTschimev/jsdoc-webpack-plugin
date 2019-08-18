@@ -132,16 +132,27 @@ Plugin.prototype.apply = function (compiler) {
       console.log('Taking sources from config file');
     }
     else {
-      compilation.chunks.forEach(function (chunk) {
-        chunk.modules.forEach(function (module) {
-          if (module.fileDependencies) {
-            module.fileDependencies.forEach(function (filepath) {
-              files.push(path.relative(process.cwd(), filepath));
-            });
-          }
-        });
+      /**
+       * Pushes all filepaths included in the bundles (except any file from
+       * node_modules, like the webpack ones) into `files`.
+       * I.e:
+       *     If you use the scripts "a", "b" and expect webpack to bundle them to "main",
+       *     then the included files will be "a" and "b"...
+       *     NOT "main" and/or any file from "node_modules".
+       */
+      compilation.fileDependencies.forEach(function (filepath, i) {
+        var exception = /\/node_modules\//.test(filepath);
+
+        if (!exception) {
+          files.push(filepath);
+        }
       });
-      _.merge(obj.source, { include: files });
+
+      _.defaults(obj, {
+        source: {
+          include: files
+        }
+      });
 
       tmpFile = jsdocConfig + '.tmp';
       console.log('Writing temporary file at: ', tmpFile);
