@@ -14,7 +14,7 @@ module.exports = {
     /// ... rest of config
     plugins: [
         new JsDocPlugin({
-            conf: 'jsdoc.conf',
+            conf: 'jsdoc.conf.js',
             cwd: '.',
             preserveTmpFile: false
         })
