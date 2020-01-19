@@ -17,7 +17,7 @@ module.exports = {
             conf: 'jsdoc.conf.js',
             cwd: '.',
             preserveTmpFile: false,
-			recursive: false
+            recursive: false
         })
     ]
 }
