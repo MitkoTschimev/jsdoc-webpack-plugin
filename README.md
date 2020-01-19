@@ -16,7 +16,8 @@ module.exports = {
         new JsDocPlugin({
             conf: 'jsdoc.conf.js',
             cwd: '.',
-            preserveTmpFile: false
+            preserveTmpFile: false,
+			recursive: false
         })
     ]
 }
