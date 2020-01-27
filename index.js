@@ -78,7 +78,12 @@ function Plugin(options) {
      * change it.
      * @type {?boolean}
      */
-    preserveTmpFile: false
+    preserveTmpFile: false,
+    /**
+     * Run JsDoc recursively (with -r flag).
+     * @type {?boolean}
+     */
+    recursive: false
   };
 
   this.options = _.merge({}, defaultOptions, options);
@@ -102,6 +107,7 @@ Plugin.prototype.apply = function (compiler) {
     var obj = {};
     var jsdoc, cmd;
     var tmpFile;
+    var jsdocArgs;
 
     console.log('JSDOC Start generating');
 
@@ -163,7 +169,14 @@ Plugin.prototype.apply = function (compiler) {
     }
 
     console.log('Using jsdoc located at: ', cmd);
-    jsdoc = spawn(cmd, ['-c', jsdocConfig], {
+	
+    jsdocArgs	= ['-c', jsdocConfig];
+	
+    if (options.recursive) {
+      jsdocArgs.push('-r');
+    }
+	
+    jsdoc = spawn(cmd, jsdocArgs, {
       cwd: jsdocConfigDir
     });
 
